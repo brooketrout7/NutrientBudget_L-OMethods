@@ -6,13 +6,6 @@
 #   using precipitation measurements from the National Atmospheric Deposition
 #   Program (NADP) MT05 station.
 #
-# Input:
-#   0_data/NADP_data/NTN-mt05-W-s.csv
-#
-# Outputs:
-#   2_incremental/WetDeposition.csv
-#   3_products/LW_L3W.png
-#
 # Notes:
 #   - NADP precipitation is reported in mm.
 #   - Weekly precipitation volume is calculated as:

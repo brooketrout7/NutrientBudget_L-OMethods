@@ -7,17 +7,6 @@
 #   2. Relate LMC water level to the Middle Fork Flathead River donor gage.
 #   3. Use the donor gage record to reconstruct Lake McDonald water level.
 #   4. Convert reconstructed changes in lake level to changes in lake volume.
-#
-# Raw inputs:
-#   0_data/Ll_lodge.csv
-#   0_data/Lo.csv
-#   2_incremental/Q_donor_gage.csv
-#
-# Outputs:
-#   2_incremental/LMC_LODGE_water_levels_WY_2008_2023.csv
-#   2_incremental/lake_WY_2008_2023.csv
-#   3_products/L3L_reconstruction.png
-#   3_products/L3L_donor_gage_relationships.png
 # ==============================================================================
 
 
@@ -349,7 +338,7 @@ ggplot(
 
 MF <- readr::read_csv(
   here(
-    "2_incremental",
+    "0_data",
     "Q_donor_gage.csv"
   ),
   col_types = cols(

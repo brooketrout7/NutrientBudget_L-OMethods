@@ -9,9 +9,6 @@
 # Raw data:
 #   NASA POWER daily meteorological data
 #
-# Outputs:
-#   0_data/NASA_POWER_daily.csv
-#   2_incremental/Le.csv
 
 # ==============================================================================
 

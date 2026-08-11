@@ -3,7 +3,7 @@
 # ============================================================
 #
 # Purpose:
-# Reconstruct hourly discharge for major Lake McDonald tributaries
+# Reconstruct instantaneous discharge for major Lake McDonald tributaries
 # and the lake outlet using the Middle Fork Flathead River
 # (USGS 12358500) as a donor gage.
 #
@@ -18,12 +18,6 @@
 # at each site and concurrent discharge at the Middle Fork Flathead
 # River donor gage. These relationships are then used to reconstruct
 # hourly discharge for water years 2008–2023.
-#
-# Repository structure:
-#   0_data/        Original/raw data
-#   1_protocols/   Analysis code
-#   2_incremental/ Intermediate data generated during analysis
-#   3_products/    Final figures and other products
 #
 # Donor-gage method:
 #   https://doi.org/10.5194/hess-28-545-2024
@@ -46,7 +40,7 @@ options(scipen = 999)
 
 # Upper McDonald Creek observed discharge
 umc <- read.csv(
-  here("2_incremental", "Qumc.csv")
+  here("0_data", "Qumc.csv")
 )
 
 umc <- umc %>%
@@ -74,7 +68,7 @@ umc <- umc %>%
 
 # Lower McDonald Creek observed discharge
 lmc <- read.csv(
-  here("2_incremental", "Qlmc.csv")
+  here("0_data", "Qlmc.csv")
 )
 
 lmc <- lmc %>%
@@ -104,7 +98,7 @@ lmc <- lmc %>%
 # downloaded from Q_donorgage.R
 
 MF <- readr::read_csv(
-  here("2_incremental", "Q_donor_gage.csv"),
+  here("0_data", "Q_donor_gage.csv"),
   col_types = cols(
     dateTime = col_datetime(format = "")
   )
@@ -610,7 +604,7 @@ write.csv(
 
 # Upper McDonald Creek
 
-bayes_donor_umc <- ggplot(
+ggplot(
   umc,
   aes(
     x = MF_Q_m3_s,
@@ -658,7 +652,7 @@ bayes_donor_umc <- ggplot(
 
 # Lower McDonald Creek
 
-bayes_donor_lmc <- ggplot(
+ggplot(
   lmc,
   aes(
     x = MF_Q_m3_s,
@@ -706,7 +700,7 @@ bayes_donor_lmc <- ggplot(
 
 # Snyder Creek
 
-bayes_donor_sny <- ggplot(
+ggplot(
   sny,
   aes(
     x = MF_Q_m3_s,
@@ -754,7 +748,7 @@ bayes_donor_sny <- ggplot(
 
 # Sprague Creek
 
-bayes_donor_spr <- ggplot(
+ggplot(
   spr,
   aes(
     x = MF_Q_m3_s,
@@ -802,7 +796,7 @@ bayes_donor_spr <- ggplot(
 
 # Fish Creek
 
-bayes_donor_fish <- ggplot(
+ggplot(
   fish,
   aes(
     x = MF_Q_m3_s,
@@ -847,14 +841,5 @@ bayes_donor_fish <- ggplot(
     legend.position = "none"
   )
 
-
-# Combine donor-gage relationships into one figure
-
-combined_plot <-
-  (bayes_donor_umc + bayes_donor_lmc) /
-  (bayes_donor_sny + bayes_donor_spr) /
-  (bayes_donor_fish + plot_spacer())
-
-combined_plot
 
 

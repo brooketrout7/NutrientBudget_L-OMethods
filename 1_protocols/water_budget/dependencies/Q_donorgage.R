@@ -1,5 +1,5 @@
 # ============================================================
-# Middle Fork Flathead River donor gage
+# Download discharge data from the Middle Fork Flathead River donor gage
 # USGS site 12358500
 # ============================================================
 
@@ -157,6 +157,6 @@ MF_WY_2008_2024 <- MF_WY_2008_2024 %>%
 
 write.csv(
   MF_WY_2008_2024,
-  here("2_incremental", "Q_donor_gage.csv"),
+  here("0_data", "Q_donor_gage.csv"),
   row.names = FALSE
 )

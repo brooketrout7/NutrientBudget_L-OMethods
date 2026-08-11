@@ -5,15 +5,6 @@
 #   Combine tributary inflow, lake outflow, wet deposition, evaporation,
 #   and reconstructed lake volume into a common water-budget dataset.
 #
-# Inputs:
-#   2_incremental/QtQo.csv
-#   2_incremental/Vl.csv
-#   2_incremental/Le.csv
-#   2_incremental/Lw.csv
-#
-# Output:
-#   2_incremental/WaterBudget.csv
-#
 # Notes:
 #   - Water-budget intervals are defined by NADP precipitation collection dates.
 #   - Tributary and outlet discharge are converted from m3/s to m3/hour.
@@ -1228,7 +1219,7 @@ summarize_evap_lwr <- function(
 # Apply lower evaporation function
 
 results_lwr <- summarize_evap_lwr(
-  le,
+  Le,
   precip_dates_times
 )
 
@@ -1436,7 +1427,7 @@ which_fail(
 write.csv(
   working_budget,
   here(
-    "2_incremental",
+    "3_products",
     "WaterBudget.csv"
   ),
   row.names = FALSE
