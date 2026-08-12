@@ -6,13 +6,6 @@
 #   from FLBS wet-deposition samples, then scale deposition from the collection
 #   bucket to the surface area of Lake McDonald.
 #
-# Inputs:
-#   0_data/Wet_Deposition.csv
-#   0_data/FLBSPublicData.csv
-#
-# Outputs:
-#   2_incremental/Fw_P.csv
-#
 # Notes:
 #   - TP concentration is reported in ug-P/L.
 #   - Sample volume is converted from mL to L.
@@ -21,15 +14,6 @@
 # ==============================================================================
 
 
-# 0. Load packages -------------------------------------------------------------
-
-library(tidyverse)
-library(lubridate)
-library(patchwork)
-library(scales)
-library(here)
-
-options(scipen = 999)
 
 
 # 1. Define constants ----------------------------------------------------------

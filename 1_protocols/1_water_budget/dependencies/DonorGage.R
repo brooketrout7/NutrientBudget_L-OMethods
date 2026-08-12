@@ -3,15 +3,6 @@
 # USGS site 12358500
 # ============================================================
 
-# 0. Load packages ----
-
-library(dataRetrieval)
-library(dplyr)
-library(lubridate)
-library(zoo)
-library(here)
-
-
 # 1. Download donor-gage data from USGS ----
 
 site_number <- "12358500"

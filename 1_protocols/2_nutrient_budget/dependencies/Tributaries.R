@@ -4,7 +4,7 @@
 # Purpose:
 #   1. Combine tributary discharge estimates with measured TN and TP chemistry.
 #   2. Fit LOADEST models separately for each tributary.
-#   3. Predict hourly TN and TP loads for WY 2008-2023.
+#   3. Predict hourly TN and TP loads for water year 2008-2023.
 #   4. Generate diagnostic and concentration time-series plots.
 #   5. Compare reconstructed UMC nutrient concentrations with observations
 #      using RMSE.
@@ -15,85 +15,9 @@
 #   - Fish Creek (FISH)
 #   - Sprague Creek (SPR)
 #
-# Inputs:
-#   2_incremental/QtQo.csv
-#   2_incremental/chemdata_2022.csv
-#   2_incremental/chemdata_2023.csv
-#
-# Outputs:
-#   2_incremental/Ft.csv
 # ==============================================================================
 
 
-# 0. Load packages -------------------------------------------------------------
-
-# Install packages if they are not already installed.
-# These installation commands only need to be run when setting up the
-# analysis environment.
-
-library(remotes)
-
-remotes::install_gitlab(
-  "water/analysis-tools/smwrData",
-  host = "code.usgs.gov"
-)
-
-remotes::install_gitlab(
-  "water/analysis-tools/smwrBase",
-  host = "code.usgs.gov"
-)
-
-remotes::install_gitlab(
-  "water/analysis-tools/smwrGraphs",
-  host = "code.usgs.gov"
-)
-
-remotes::install_gitlab(
-  "water/analysis-tools/smwrStats",
-  host = "code.usgs.gov"
-) # needs compilation
-
-remotes::install_gitlab(
-  "water/analysis-tools/smwrQW",
-  host = "code.usgs.gov"
-) # needs compilation
-
-remotes::install_github(
-  "appling/unitted"
-)
-
-remotes::install_github(
-  "DOI-USGS/EGRET"
-)
-
-remotes::install_github(
-  "USGS-R/rloadest"
-)
-
-remotes::install_github(
-  "USGS-R/loadflex"
-) # soon to be "DOI-USGS/loadflex"
-
-
-# install.packages("smwrStats")
-
-library(methods)
-library(NADA)
-# library(smwrQW)
-# library(smwrStats)
-library(loadflex)
-library(rloadest)
-library(dplyr)
-library(ggplot2)
-library(tidyverse)
-library(lubridate)
-library(rlang)
-library(patchwork)
-library(tidyr)
-library(knitr)
-library(here)
-
-options(scipen = 999)
 
 
 # 1. Merge tributary discharge and chemistry ----------------------------------

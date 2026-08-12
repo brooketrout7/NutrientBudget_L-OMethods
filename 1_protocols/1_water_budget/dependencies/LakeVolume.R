@@ -10,18 +10,6 @@
 # ==============================================================================
 
 
-# 0. Load packages -------------------------------------------------------------
-
-library(tidyverse)
-library(lubridate)
-library(brms)
-library(patchwork)
-library(scales)
-library(here)
-
-options(scipen = 999)
-
-
 # 1. Define constants ----------------------------------------------------------
 
 lake_area_m2 <- 27810670.1791
@@ -448,7 +436,9 @@ preds <- MF %>%
   )
 
 
-# Predict Lower McDonald Creek water level from donor gage
+# Predict Lower McDonald Creek water level from donor-gage height.
+# The 2.5th and 97.5th percentiles represent lower and upper
+# posterior predictive estimates.
 
 lmc_bayes_pred <- predict(
   bayes_gage,
@@ -464,7 +454,9 @@ preds <- preds %>%
   )
 
 
-# Predict Lake McDonald water level from reconstructed LMC level
+# Predict Lake McDonald water level from reconstructed LMC water level.
+# The 2.5th and 97.5th percentiles represent lower and upper
+# posterior predictive estimates.
 
 lake_bayes_pred <- predict(
   bayes_lake,
@@ -488,6 +480,9 @@ preds <- preds %>%
 #
 # Lake volume is reconstructed relative to an initial volume of
 # 1,491,191,000 m3.
+
+# Reconstruct lake-volume trajectories from the best, 2.5th, and 97.5th
+# percentile posterior predictive lake-level estimates.
 
 lake <- preds %>%
   arrange(date_time) %>%

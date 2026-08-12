@@ -12,21 +12,6 @@
 # ==============================================================================
 
 
-# 0. Load packages -------------------------------------------------------------
-
-library(tidyverse)
-library(lubridate)
-library(scales)
-library(gridExtra)
-library(patchwork)
-library(here)
-library(ggplot2)
-library(ggbreak)
-
-# Remove scientific notation
-options(scipen = 999)
-
-
 # 1. Read water-budget inputs --------------------------------------------------
 
 # Tributary inflow and lake outflow
@@ -203,7 +188,7 @@ precip_dates_times$date_time <- as.POSIXct(
 )
 
 
-# 4. Sum tributary and outlet volume: mean estimates --------------------------
+# 4. Sum tributary and outlet volume: best approximation --------------------------
 
 # Sum hourly tributary inflow and outlet volume within each NADP sampling
 # interval.
@@ -715,7 +700,7 @@ working_budget <- working_budget %>%
   )
 
 
-# 9. Sum evaporation: mean estimates ------------------------------------------
+# 9. Sum evaporation: best approximation ------------------------------------------
 
 # Sum daily mean evaporation within each NADP sampling interval.
 

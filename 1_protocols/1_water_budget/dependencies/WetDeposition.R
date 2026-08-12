@@ -2,29 +2,17 @@
 # Estimate wet deposition water input to Lake McDonald
 #
 # Purpose:
-#   Calculate weekly precipitation volume falling directly on Lake McDonald
-#   using precipitation measurements from the National Atmospheric Deposition
-#   Program (NADP) MT05 station.
+#   Calculate precipitation volume falling directly on Lake McDonald
+#   over each NADP sampling interval using precipitation measurements
+#   from the National Atmospheric Deposition Program (NADP) MT05 station.
 #
 # Notes:
 #   - NADP precipitation is reported in mm.
-#   - Weekly precipitation volume is calculated as:
-#
-#       precipitation depth (m) * lake surface area (m2)
+# Precipitation volume for each sampling interval is calculated as:
+# Lw (m3/interval) = subppt (mm/interval) * 0.001 (m/mm) * lake area (m2)
 #
 #   - Lake McDonald surface area = 27,810,670.1791 m2.
 # ==============================================================================
-
-
-# 0. Load packages -------------------------------------------------------------
-
-library(dplyr)
-library(ggplot2)
-library(lubridate)
-library(scales)
-library(patchwork)
-
-options(scipen = 999)
 
 
 # 1. Define constants ----------------------------------------------------------
@@ -46,8 +34,8 @@ nadp <- read.csv(
 
 # 3. Clean NADP data -----------------------------------------------------------
 
-# Convert sampling dates to UTC.
-# NADP dates are reported as month/day/year hour:minute.
+# Convert NADP sampling timestamps from GMT to UTC.
+# Dates are reported as month/day/year hour:minute.
 
 nadp <- nadp %>%
   mutate(
@@ -146,7 +134,7 @@ ggplot(
     title = "B",
     x = "Date",
     y = expression(
-      L[W]^3 * " (" * m^3 ~ wk^-1 * ")"
+      L[W] * " (" * m^3 ~ wk^-1 * ")"
     )
   ) +
   scale_x_date(

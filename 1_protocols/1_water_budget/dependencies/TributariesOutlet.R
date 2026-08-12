@@ -25,17 +25,6 @@
 # ============================================================
 
 
-# 0. Load packages ----
-
-library(tidyverse)
-library(lubridate)
-library(brms)
-library(patchwork)
-library(here)
-
-options(scipen = 999)
-
-
 # 1. Read discharge data ----
 
 # Upper McDonald Creek observed discharge
@@ -183,7 +172,9 @@ umc$umc_fit_lwr <- exp(umc_fit[, "Q2.5"])
 umc$umc_fit_upr <- exp(umc_fit[, "Q97.5"])
 
 
-# Generate posterior predictions for the complete donor-gage record
+# Generate posterior predictions for the complete donor-gage record.
+# The 2.5th and 97.5th percentiles represent the lower and upper
+# posterior predictive estimates used in the low and high scenarios.
 
 umc_bayes_pred <- predict(
   bayes_umc,
@@ -574,9 +565,12 @@ preds <- preds %>%
     )
   )
 
-# Apply upper limit to Sprague Creek prediction interval.
-# The upper prediction bound for Sprague Creek is constrained
-# using the maximum Snyder Creek upper prediction bound.
+# Apply a limit to Sprague Creek reconstructed discharge.
+
+# The upper posterior predictive estimate for Sprague Creek
+# (spr_discharge_m3_s_upr) is constrained using the maximum
+# upper posterior predictive estimate for Snyder Creek
+# (sny_discharge_m3_s_upr).
 
 preds <- preds %>%
   mutate(

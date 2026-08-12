@@ -6,36 +6,15 @@
 #   deposition from FLBS deposition samples and scale deposition from the
 #   collection bucket to the surface area of Lake McDonald.
 #
-# Inputs:
-#   0_data/Dry_Deposition.csv
-#   0_data/FLBSPublicData.csv
-#
-# Outputs:
-#   2_incremental/FD_for_fire_sim.csv
-#   2_incremental/FD.csv
-#
 # Notes:
 #   - TN and TP concentrations are reported in ug/L.
 #   - Sample volume is converted from mL to L.
 #   - Nutrient deposition is first calculated per unit bucket area (kg/m2)
-#     and then scaled to the full surface area of Lake McDonald.
-#   - TN and TP are processed separately because they have separate
-#     concentration records.
+#     and then scaled to the surface area of Lake McDonald.
+#   - TN and TP are processed separately.
 # ==============================================================================
 
 
-# 0. Load packages -------------------------------------------------------------
-
-library(ggplot2)
-library(gridExtra)
-library(lubridate)
-library(patchwork)
-library(scales)
-library(dplyr)
-library(tidyr)
-library(here)
-
-options(scipen = 999)
 
 
 # 1. Define constants ----------------------------------------------------------

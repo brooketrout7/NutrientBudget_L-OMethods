@@ -2,44 +2,41 @@
 # Estimate evaporation from Lake McDonald
 #
 # Purpose:
-#   Estimate daily evaporation rate and volume from Lake McDonald using
-#   NASA POWER solar radiation and air temperature data and the Simple
-#   Abtew Method.
+#   Estimate daily evaporation depth and water-volume loss from Lake McDonald
+#   using NASA POWER solar radiation and air temperature data and the
+#   Simple Abtew Method.
 #
-# Raw data:
-#   NASA POWER daily meteorological data
 #
-
+# Notes:
+#   - Daily mean air temperature is used for the best approximation.
+#   - Daily minimum and maximum air temperatures are used to characterize
+#     sensitivity of the evaporation estimate to temperature.
 # ==============================================================================
-
-
-# 0. Load packages -------------------------------------------------------------
-
-library(tidyverse)
-library(lubridate)
-library(nasapower)
-library(scales)
-library(patchwork)
-library(here)
-
-options(scipen = 999)
 
 
 # 1. Define constants ----------------------------------------------------------
 
 # Lake McDonald coordinates
+
 lon <- -114.0102
 lat <- 48.49552
 
+
 # Study period
+
 start_date <- "2007-10-01"
-end_date   <- "2023-09-30"
+end_date <- "2023-09-30"
+
 
 # Lake McDonald surface area (m2)
+
 lake_area_m2 <- 27810670.1791
 
-# Abtew coefficient
+
+# Simple Abtew coefficient
+
 k_abtew <- 0.53
+
 
 # 2. Download NASA POWER data --------------------------------------------------
 
@@ -60,8 +57,14 @@ power_data <- nasapower::get_power(
     "T2M_MIN",
     "T2M"
   ),
-  lonlat = c(lon, lat),
-  dates = c(start_date, end_date),
+  lonlat = c(
+    lon,
+    lat
+  ),
+  dates = c(
+    start_date,
+    end_date
+  ),
   temporal_api = "DAILY"
 ) %>%
   as.data.frame() %>%
@@ -83,7 +86,8 @@ power_data <- nasapower::get_power(
     date = as.Date(date)
   )
 
-# Save original downloaded data
+
+# Save original downloaded NASA POWER data
 
 write.csv(
   power_data,
@@ -94,6 +98,7 @@ write.csv(
   row.names = FALSE
 )
 
+
 # 3. Estimate daily evaporation ------------------------------------------------
 
 # Simple Abtew Method:
@@ -101,7 +106,7 @@ write.csv(
 #   E = K * Rs / lambda
 #
 # where:
-#   E      = evaporation (mm/day)
+#   E      = evaporation depth (mm/day)
 #   K      = dimensionless coefficient (0.53)
 #   Rs     = solar radiation (MJ/m2/day)
 #   lambda = latent heat of vaporization (MJ/kg)
@@ -110,23 +115,74 @@ write.csv(
 #
 #   lambda = 2.501 - 0.002361 * T
 #
-# Temperature is represented by daily mean, minimum, and maximum air
-# temperature to estimate the central value and temperature-based range.
+# Daily mean air temperature is used for the best approximation.
+# Daily minimum and maximum air temperatures are used to characterize
+# sensitivity of the evaporation estimate to temperature.
 
 evap <- power_data %>%
   mutate(
-    lambda_max = 2.501 - 0.002361 * tmax,
-    lambda_min = 2.501 - 0.002361 * tmin,
-    lambda     = 2.501 - 0.002361 * tavg,
     
-    LE_mm_d_max = k_abtew * (solar_mj_m2_d / lambda_max),
-    LE_mm_d_min = k_abtew * (solar_mj_m2_d / lambda_min),
-    LE_mm_d     = k_abtew * (solar_mj_m2_d / lambda),
+    # Latent heat of vaporization calculated using daily air temperature.
+    # Because lambda decreases as temperature increases, names refer to
+    # the temperature input rather than the resulting lambda magnitude.
     
-    # Convert evaporation depth (mm/day) to volume (m3/day)
-    L3E_m3_d     = (LE_mm_d / 1000) * lake_area_m2,
-    L3E_m3_d_min = (LE_mm_d_min / 1000) * lake_area_m2,
-    L3E_m3_d_max = (LE_mm_d_max / 1000) * lake_area_m2
+    lambda_tmax =
+      2.501 -
+      0.002361 *
+      tmax,
+    
+    lambda_tmin =
+      2.501 -
+      0.002361 *
+      tmin,
+    
+    lambda =
+      2.501 -
+      0.002361 *
+      tavg,
+    
+    
+    # Daily evaporation depth (mm/day)
+    
+    LE_mm_d_max =
+      k_abtew *
+      (
+        solar_mj_m2_d /
+          lambda_tmax
+      ),
+    
+    LE_mm_d_min =
+      k_abtew *
+      (
+        solar_mj_m2_d /
+          lambda_tmin
+      ),
+    
+    LE_mm_d =
+      k_abtew *
+      (
+        solar_mj_m2_d /
+          lambda
+      ),
+    
+    
+    # Convert evaporation depth (mm/day) to water-volume loss (m3/day):
+    #
+    #   evaporation depth (mm/day)
+    #   * 1 m / 1000 mm
+    #   * lake surface area (m2)
+    
+    L3E_m3_d =
+      (LE_mm_d / 1000) *
+      lake_area_m2,
+    
+    L3E_m3_d_min =
+      (LE_mm_d_min / 1000) *
+      lake_area_m2,
+    
+    L3E_m3_d_max =
+      (LE_mm_d_max / 1000) *
+      lake_area_m2
   ) %>%
   select(
     date,
@@ -166,7 +222,9 @@ ggplot(
     alpha = 0.4
   ) +
   geom_point(
-    aes(y = LE_mm_d),
+    aes(
+      y = LE_mm_d
+    ),
     color = "cadetblue",
     size = 0.5
   ) +
@@ -177,18 +235,33 @@ ggplot(
     )
   ) +
   scale_x_date(
-    limits = as.Date(c("2007-10-01", "2023-10-01")),
+    limits = as.Date(
+      c(
+        "2007-10-01",
+        "2023-10-01"
+      )
+    ),
     date_breaks = "6 months",
     date_labels = "%b-%Y",
-    expand = c(0, 0)
+    expand = c(
+      0,
+      0
+    )
   ) +
   scale_y_continuous(
-    limits = c(0, 8)
+    limits = c(
+      0,
+      8
+    )
   ) +
   theme_classic() +
   theme(
-    axis.title = element_text(size = 12),
-    axis.text.y = element_text(size = 12),
+    axis.title = element_text(
+      size = 12
+    ),
+    axis.text.y = element_text(
+      size = 12
+    ),
     axis.text.x = element_blank(),
     axis.title.x = element_blank()
   )
@@ -209,21 +282,31 @@ ggplot(
     alpha = 0.4
   ) +
   geom_point(
-    aes(y = L3E_m3_d),
+    aes(
+      y = L3E_m3_d
+    ),
     color = "cadetblue",
     size = 0.5
   ) +
   labs(
     x = "Date",
     y = expression(
-      L[E]^3 * " (" * m^3 ~ d^-1 * ")"
+      L[E] * " (" * m^3 ~ d^-1 * ")"
     )
   ) +
   scale_x_date(
-    limits = as.Date(c("2007-10-01", "2023-10-01")),
+    limits = as.Date(
+      c(
+        "2007-10-01",
+        "2023-10-01"
+      )
+    ),
     date_breaks = "6 months",
     date_labels = "%b-%Y",
-    expand = c(0, 0)
+    expand = c(
+      0,
+      0
+    )
   ) +
   scale_y_log10(
     breaks = c(
@@ -237,13 +320,15 @@ ggplot(
   ) +
   theme_classic() +
   theme(
-    axis.title = element_text(size = 12),
-    axis.text.y = element_text(size = 12),
+    axis.title = element_text(
+      size = 12
+    ),
+    axis.text.y = element_text(
+      size = 12
+    ),
     axis.text.x = element_text(
       size = 8,
       angle = 90,
       hjust = 1
     )
   )
-
-

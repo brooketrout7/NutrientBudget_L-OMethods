@@ -6,11 +6,6 @@
 #   of nitrate (NO3) and ammonium (NH4), then scale deposition from the NADP
 #   collection bucket to the surface area of Lake McDonald.
 #
-# Input:
-#   0_data/NTN-mt05-W-s.csv
-#
-# Outputs:
-#   2_incremental/Fw_N.csv
 #
 # Notes:
 #   - NADP NO3 and NH4 concentrations are reported in mg/L.
@@ -20,18 +15,6 @@
 #     cancels when calculating deposition per unit area.
 # ==============================================================================
 
-
-# 0. Load packages -------------------------------------------------------------
-
-library(ggplot2)
-library(gridExtra)
-library(lubridate)
-library(dplyr)
-library(patchwork)
-library(scales)
-library(here)
-
-options(scipen = 999)
 
 
 # 1. Define constants ----------------------------------------------------------
