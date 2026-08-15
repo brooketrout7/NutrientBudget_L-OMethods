@@ -277,9 +277,6 @@ ggplot(
   ) + scale_y_reverse()
 
 
-
-
-
 # 6. Plot nitrogen mass proportion through time ------------------------------
 
 n <- burial %>%
@@ -310,7 +307,7 @@ ggplot(
     )
   ) +
   labs(
-    y = "Year (CE)"
+    y = "Depth (cm)"
   ) +
   theme_classic() +
   theme(
@@ -318,6 +315,7 @@ ggplot(
     axis.text.x.bottom = element_blank(),
     axis.ticks.x.bottom = element_blank()
   ) + scale_y_reverse()
+
 
 # 7. Plot distribution of phosphorus mass proportion -------------------------
 
@@ -360,6 +358,7 @@ ggplot(
   ) +
   theme_classic()
 
+
 # 8. Plot distribution of nitrogen mass proportion --------------------------
 
 ggplot(
@@ -397,7 +396,6 @@ ggplot(
     y = "Count"
   ) +
   theme_classic()
-
 
 
 # 9. Calculate burial using depth-scaled whole-lake area ----------------------

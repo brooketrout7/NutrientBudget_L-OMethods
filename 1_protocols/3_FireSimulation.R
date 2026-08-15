@@ -367,7 +367,7 @@ sim <- rbind(sprague, null_winter, snow, null_summer, howe)
 
 set.seed(123)
 
-n_iter <- 10 # Number of iterations
+n_iter <- 100000 # Number of iterations
 plan(multisession, workers = parallel::detectCores() - 1) # Parallel processing
 
 # Define the repository directory for intermediate Monte Carlo outputs.
@@ -973,7 +973,7 @@ sim <- rbind(sprague, null_winter, snow, null_summer, howe)
 
 set.seed(123)
 
-n_iter <- 10 # Number of iterations
+n_iter <- 100000 # Number of iterations
 plan(multisession, workers = parallel::detectCores() - 1) # Parallel processing
 
 # Set output
@@ -1394,7 +1394,6 @@ ggplot(
   nuts,
   aes(x = end_date)
 ) +
-  
   # Modeled TN concentration
   geom_ribbon(
     aes(
@@ -1508,4 +1507,476 @@ ggplot(
     ),
     legend.position = "none"
   )
+
+
+# Add 1975 data----
+
+P_conc_plot <- ggplot(
+  data = preds_tp_1975,
+  aes(x = end_date)
+) +
+  
+  # 1975 ---------------------------------------------------------------
+geom_ribbon(
+  data = preds_tp_1975,
+  aes(
+    ymin = min_tp,
+    ymax = max_tp,
+    fill = "Range (1975)"
+  ),
+  alpha = 0.7
+) +
+  
+  geom_line(
+    data = preds_tp_1975,
+    aes(
+      y = mean_tp,
+      color = "Best Approximation (1975)"
+    ),
+    linewidth = 0.35,
+    lineend = "round"
+  ) +
+  
+  
+  # Updated model ------------------------------------------------------
+geom_ribbon(
+  data = nuts,
+  aes(
+    x = end_date,
+    ymin = TP_conc_est_lwr,
+    ymax = TP_conc_est_upr,
+    fill = "Range"
+  ),
+  alpha = 0.7
+) +
+  
+  geom_line(
+    data = nuts,
+    aes(
+      x = end_date,
+      y = TP_conc_est,
+      color = "Best Approximation"
+    ),
+    linewidth = 1,
+    lineend = "round"
+  ) +
+  
+  
+  # Fire posterior -----------------------------------------------------
+geom_ribbon(
+  data = TP_summary,
+  aes(
+    x = date,
+    ymin = TP_conc_min,
+    ymax = TP_conc_max,
+    fill = "Range (fire)"
+  ),
+  alpha = 0.5
+) +
+  
+  geom_line(
+    data = TP_summary,
+    aes(
+      x = date,
+      y = TP_conc_mean,
+      color = "Mean (fire)"
+    ),
+    linewidth = 1,
+    lineend = "round"
+  ) +
+  
+  
+  # Observations -------------------------------------------------------
+geom_errorbar(
+  data = nuts,
+  aes(
+    x = end_date,
+    ymin = min_tp,
+    ymax = max_tp
+  ),
+  width = 0.1,
+  color = "black",
+  linewidth = 0.3,
+  inherit.aes = FALSE
+) +
+  
+  geom_point(
+    data = nuts,
+    aes(
+      x = end_date,
+      y = mean_tp
+    ),
+    color = "black",
+    size = 3,
+    inherit.aes = FALSE
+  ) +
+  
+  
+  # Labels -------------------------------------------------------------
+labs(
+  title = "A",
+  x = "Date",
+  y = expression(
+    "TP Concentration (" * mu * "g-P L"^{-1} * ")"
+  )
+) +
+  
+  
+  # X-axis -------------------------------------------------------------
+scale_x_date(
+  limits = as.Date(
+    c(
+      "1975-10-01",
+      "2023-10-15"
+    )
+  ),
+  breaks = x_breaks,
+  labels = x_labels,
+  expand = c(0, 0)
+) +
+  
+  
+  # X-axis break -------------------------------------------------------
+scale_x_break(
+  breaks = as.Date(
+    c(
+      "2005-10-01",
+      "2007-10-16"
+    )
+  ),
+  scales = 30
+) +
+  
+  
+  # Y-axis -------------------------------------------------------------
+scale_y_log10(
+  limits = c(
+    0.1,
+    250
+  ),
+  breaks = c(
+    1,
+    10,
+    20,
+    50,
+    100,
+    250
+  ),
+  labels = scales::label_number()
+) +
+  
+  
+  # Ribbon colors ------------------------------------------------------
+scale_fill_manual(
+  name = "Ribbons",
+  values = c(
+    "Range (1975)" = "gray70",
+    "Range" = "peachpuff1",
+    "Range (fire)" = "darkred"
+  ),
+  breaks = c(
+    "Range (1975)",
+    "Range",
+    "Range (fire)"
+  )
+) +
+  
+  
+  # Line colors --------------------------------------------------------
+scale_color_manual(
+  name = "Lines",
+  values = c(
+    "Best Approximation (1975)" = "gray30",
+    "Best Approximation" = "salmon1",
+    "Mean (fire)" = "darkred"
+  ),
+  breaks = c(
+    "Best Approximation (1975)",
+    "Best Approximation",
+    "Mean (fire)"
+  )
+) +
+  
+  
+  # Legend order -------------------------------------------------------
+guides(
+  fill = guide_legend(order = 1),
+  color = guide_legend(order = 2)
+) +
+  
+  
+  # Theme --------------------------------------------------------------
+panel_theme +
+  
+  theme(
+    # X-axis tick labels
+    axis.text.x = element_text(
+      size = 9,
+      angle = 90,
+      hjust = 1,
+      vjust = 0.25
+    ),
+    
+    # Y-axis tick labels
+    axis.text.y = element_text(
+      size = 9
+    ),
+    
+    # X-axis title
+    axis.title.x = element_text(
+      size = 12
+    ),
+    
+    # Y-axis title
+    axis.title.y = element_text(
+      size = 12,
+      hjust = 0.85
+    ),
+    
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    legend.text = element_text(size = 12),
+    legend.title = element_blank(),
+    legend.key.size = unit(0.5, "cm")
+  )
+
+
+# Display plot ----------------------------------------------------------
+P_conc_plot
+
+N_conc_plot <- ggplot(
+  data = preds_tn_1975,
+  aes(x = end_date)
+) +
+  
+  # 1975 ---------------------------------------------------------------
+geom_ribbon(
+  data = preds_tn_1975,
+  aes(
+    ymin = min_tn,
+    ymax = max_tn,
+    fill = "Range (1975)"
+  ),
+  alpha = 0.7
+) +
+  
+  geom_line(
+    data = preds_tn_1975,
+    aes(
+      y = mean_tn,
+      color = "Best Approximation (1975)"
+    ),
+    linewidth = 0.35,
+    lineend = "round"
+  ) +
+  
+  
+  # Updated model ------------------------------------------------------
+geom_ribbon(
+  data = nuts,
+  aes(
+    x = end_date,
+    ymin = TN_conc_est_lwr,
+    ymax = TN_conc_est_upr,
+    fill = "Range"
+  ),
+  alpha = 0.7
+) +
+  
+  geom_line(
+    data = nuts,
+    aes(
+      x = end_date,
+      y = TN_conc_est,
+      color = "Best Approximation"
+    ),
+    linewidth = 1,
+    lineend = "round"
+  ) +
+  
+  
+  # Fire posterior -----------------------------------------------------
+geom_ribbon(
+  data = TN_summary,
+  aes(
+    x = date,
+    ymin = TN_conc_min,
+    ymax = TN_conc_max,
+    fill = "Range (fire)"
+  ),
+  alpha = 0.5
+) +
+  
+  geom_line(
+    data = TN_summary,
+    aes(
+      x = date,
+      y = TN_conc_mean,
+      color = "Mean (fire)"
+    ),
+    linewidth = 1,
+    lineend = "round"
+  ) +
+  
+  
+  # Observations -------------------------------------------------------
+geom_errorbar(
+  data = nuts,
+  aes(
+    x = end_date,
+    ymin = min_tn,
+    ymax = max_tn
+  ),
+  width = 0.1,
+  color = "black",
+  linewidth = 0.3,
+  inherit.aes = FALSE
+) +
+  
+  geom_point(
+    data = nuts,
+    aes(
+      x = end_date,
+      y = mean_tn
+    ),
+    color = "black",
+    size = 3,
+    inherit.aes = FALSE
+  ) +
+  
+  
+  # Labels -------------------------------------------------------------
+labs(
+  title = "B",
+  x = "Date",
+  y = expression(
+    "TN Concentration (" * mu * "g-N L"^{-1} * ")"
+  )
+) +
+  
+  
+  # X-axis -------------------------------------------------------------
+scale_x_date(
+  limits = as.Date(
+    c(
+      "1975-10-01",
+      "2023-10-15"
+    )
+  ),
+  breaks = x_breaks,
+  labels = x_labels,
+  expand = c(0, 0)
+) +
+  
+  
+  # X-axis break -------------------------------------------------------
+scale_x_break(
+  breaks = as.Date(
+    c(
+      "2005-10-01",
+      "2007-10-16"
+    )
+  ),
+  scales = 30
+) +
+  
+  
+  # Y-axis -------------------------------------------------------------
+scale_y_log10(
+  limits = c(
+    100,
+    9000
+  ),
+  breaks = c(
+    100,
+    300,
+    1000,
+    3000,
+    9000
+  ),
+  labels = scales::label_comma()
+) +
+  
+  
+  # Ribbon colors ------------------------------------------------------
+scale_fill_manual(
+  name = "Ribbons",
+  values = c(
+    "Range (1975)" = "gray70",
+    "Range" = "#cbc9e2",
+    "Range (fire)" = "darkred"
+  ),
+  breaks = c(
+    "Range (1975)",
+    "Range",
+    "Range (fire)"
+  )
+) +
+  
+  
+  # Line colors --------------------------------------------------------
+scale_color_manual(
+  name = "Lines",
+  values = c(
+    "Best Approximation (1975)" = "gray30",
+    "Best Approximation" = "mediumpurple4",
+    "Mean (fire)" = "darkred"
+  ),
+  breaks = c(
+    "Best Approximation (1975)",
+    "Best Approximation",
+    "Mean (fire)"
+  )
+) +
+  
+  
+  # Legend order -------------------------------------------------------
+guides(
+  fill = guide_legend(order = 1),
+  color = guide_legend(order = 2)
+) +
+  
+  
+  # Theme --------------------------------------------------------------
+panel_theme +
+  
+  theme(
+    # X-axis tick labels
+    axis.text.x = element_text(
+      size = 9,
+      angle = 90,
+      hjust = 1,
+      vjust = 0.25
+    ),
+    
+    # Y-axis tick labels
+    axis.text.y = element_text(
+      size = 9
+    ),
+    
+    # X-axis title
+    axis.title.x = element_text(
+      size = 12
+    ),
+    
+    # Y-axis title
+    axis.title.y = element_text(
+      size = 12,
+      hjust = 0.85
+    ),
+    
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    legend.text = element_text(size = 12),
+    legend.title = element_blank(),
+    legend.key.size = unit(0.5, "cm")
+  )
+
+# Display plot ----------------------------------------------------------
+N_conc_plot
+
+both <- P_conc_plot/N_conc_plot
+
+ggsave("Predictions_Fire_Simulations.png", both, "png", width = 10, height = 12)
+
 

@@ -91,10 +91,11 @@ flbs <- flbs %>%
 
 flbs <- flbs %>%
   mutate(
-    Parameter = recode(
+    Parameter = case_match(
       Parameter,
-      "Total Nitrogen" = "TN",
-      "Total Phosphorus" = "TP"
+      "Total Nitrogen" ~ "TN",
+      "Total Phosphorus" ~ "TP",
+      .default = Parameter
     )
   )
 

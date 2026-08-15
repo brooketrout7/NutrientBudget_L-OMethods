@@ -836,4 +836,24 @@ ggplot(
   )
 
 
+# Plot Q
+ggplot(data = preds) +
+  geom_ribbon(aes(x = dateTime, ymin = umc_discharge_m3_s_lwr, ymax = umc_discharge_m3_s_upr), fill = "cadetblue", alpha = 0.4) + 
+  geom_line(aes(x = dateTime, y = umc_discharge_m3_s), color = "cadetblue", linewidth = 0.25) +
+  scale_x_datetime(
+    date_breaks = "6 months",
+    date_labels = "%b-%Y",
+    expand = c(0, 0)  # <-- force axis to use only your limits
+  ) + labs(
+    x = "Date",
+    y = expression("Upper McDonald Creek Discharge (" * m^3 * " s"^-1 * ")"),
+    title = ""
+  ) + theme_classic() + ylim(0,250) +
+  theme(
+    axis.title = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+    axis.text.x = element_text(size = 8, angle = 90, hjust = 1),
+    plot.title = element_text(size = 20)
+  )
+
 

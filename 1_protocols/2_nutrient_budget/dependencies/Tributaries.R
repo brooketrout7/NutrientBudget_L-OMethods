@@ -530,22 +530,19 @@ tn_umc <- preds_tn_lr %>%
 # Check for duplicate dates.
 
 preds_tn_lr %>%
-  count(date) %>%
-  filter(n > 1) %>%
-  arrange(desc(n)) %>%
-  print(n = 20)
+  dplyr::count(date) %>%
+  dplyr::filter(n > 1) %>%
+  dplyr::arrange(dplyr::desc(n))
 
 preds_tn_lr_lwr %>%
-  count(date) %>%
-  filter(n > 1) %>%
-  arrange(desc(n)) %>%
-  print(n = 20)
+  dplyr::count(date) %>%
+  dplyr::filter(n > 1) %>%
+  dplyr::arrange(dplyr::desc(n))
 
 preds_tn_lr_upr %>%
-  count(date) %>%
-  filter(n > 1) %>%
-  arrange(desc(n)) %>%
-  print(n = 20)
+  dplyr::count(date) %>%
+  dplyr::filter(n > 1) %>%
+  dplyr::arrange(dplyr::desc(n))
 
 
 # ----- UMC TP -----------------------------------------------------------------

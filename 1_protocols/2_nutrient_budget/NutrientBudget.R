@@ -1246,9 +1246,9 @@ working_budget$S_P_upr <- 129
 
 # 13. Add denitrification---------------------------------
 
-working_budget$DN_N_lwr <- 8
-working_budget$DN_N <- 27
-working_budget$DN_N_upr <- 53
+working_budget$DN_N_lwr <- 5
+working_budget$DN_N <- 53
+working_budget$DN_N_upr <- 535
 
 # 13. Add water-budget components ---------------------------------------------
 
@@ -1868,3 +1868,235 @@ ggplot(
     ),
     legend.position = "none"
   )
+
+
+# RMSE calculations --------------------------------------------------------
+
+# This function creates a table of observed and predicted nutrient
+# concentrations and calculates the mean observed concentration and RMSE.
+#
+# Arguments:
+#   data         = nutrient-budget dataframe
+#   nutrient     = "TP" or "TN"
+#   exclude_2018 = whether observations from 2018 should be excluded
+
+create_rmse_table <- function(
+    data,
+    nutrient = c("TP", "TN"),
+    exclude_2018 = FALSE
+) {
+  
+  nutrient <- match.arg(nutrient)
+  
+  # Define nutrient-specific column names.
+  if (nutrient == "TP") {
+    
+    observed_col <- "mean_tp"
+    predicted_col <- "TP_conc_est"
+    lower_col <- "TP_conc_est_lwr"
+    upper_col <- "TP_conc_est_upr"
+    
+  } else {
+    
+    observed_col <- "mean_tn"
+    predicted_col <- "TN_conc_est"
+    lower_col <- "TN_conc_est_lwr"
+    upper_col <- "TN_conc_est_upr"
+  }
+  
+  
+  # 1. Select observations used to evaluate model performance ---------------
+  
+  rmse_data <- data %>%
+    filter(
+      !is.na(.data[[observed_col]]),
+      end_date > as.Date("2008-10-01")
+    )
+  
+  
+  # Optionally remove observations collected during 2018.
+  if (exclude_2018) {
+    
+    rmse_data <- rmse_data %>%
+      filter(
+        lubridate::year(end_date) != 2018
+      )
+  }
+  
+  
+  # 2. Retain observed and predicted concentrations -------------------------
+  
+  rmse_data <- rmse_data %>%
+    transmute(
+      Date = end_date,
+      Observed = .data[[observed_col]],
+      Predicted = .data[[predicted_col]],
+      `Predicted Minimum` = .data[[lower_col]],
+      `Predicted Maximum` = .data[[upper_col]]
+    ) %>%
+    mutate(
+      Observed = round(Observed, 2),
+      Predicted = round(Predicted, 2),
+      `Predicted Minimum` = round(`Predicted Minimum`, 2),
+      `Predicted Maximum` = round(`Predicted Maximum`, 2)
+    )
+  
+  
+  # 3. Calculate model summary statistics -----------------------------------
+  
+  observed_mean <- round(
+    mean(
+      rmse_data$Observed,
+      na.rm = TRUE
+    ),
+    2
+  )
+  
+  rmse <- round(
+    sqrt(
+      mean(
+        (rmse_data$Predicted - rmse_data$Observed)^2,
+        na.rm = TRUE
+      )
+    ),
+    2
+  )
+  
+  
+  # 4. Convert date to character so summary rows can be appended ------------
+  
+  rmse_data <- rmse_data %>%
+    mutate(
+      Date = as.character(Date)
+    )
+  
+  
+  # 5. Add mean and RMSE rows ------------------------------------------------
+  
+  mean_row <- data.frame(
+    Date = "Mean",
+    Observed = observed_mean,
+    Predicted = NA_real_,
+    `Predicted Minimum` = NA_real_,
+    `Predicted Maximum` = NA_real_,
+    check.names = FALSE
+  )
+  
+  rmse_row <- data.frame(
+    Date = "RMSE",
+    Observed = NA_real_,
+    Predicted = rmse,
+    `Predicted Minimum` = NA_real_,
+    `Predicted Maximum` = NA_real_,
+    check.names = FALSE
+  )
+  
+  
+  # 6. Return final table ----------------------------------------------------
+  
+  bind_rows(
+    rmse_data,
+    mean_row,
+    rmse_row
+  )
+}
+
+
+# TP model performance -----------------------------------------------------
+
+# Include all observations, including 2018.
+TP_RMSE_table <- create_rmse_table(
+  data = working_budget,
+  nutrient = "TP",
+  exclude_2018 = FALSE
+)
+
+# Exclude observations from 2018.
+TP_RMSE_table_no2018 <- create_rmse_table(
+  data = working_budget,
+  nutrient = "TP",
+  exclude_2018 = TRUE
+)
+
+
+# TN model performance -----------------------------------------------------
+
+# Include all observations, including 2018.
+TN_RMSE_table <- create_rmse_table(
+  data = working_budget,
+  nutrient = "TN",
+  exclude_2018 = FALSE
+)
+
+# Exclude observations from 2018.
+TN_RMSE_table_no2018 <- create_rmse_table(
+  data = working_budget,
+  nutrient = "TN",
+  exclude_2018 = TRUE
+)
+
+
+# Create LaTeX tables ------------------------------------------------------
+
+xtable_table_tp <- xtable::xtable(
+  TP_RMSE_table
+)
+
+xtable_table_tp_no2018 <- xtable::xtable(
+  TP_RMSE_table_no2018
+)
+
+xtable_table_tn <- xtable::xtable(
+  TN_RMSE_table
+)
+
+xtable_table_tn_no2018 <- xtable::xtable(
+  TN_RMSE_table_no2018
+)
+
+
+# Save LaTeX tables --------------------------------------------------------
+
+# TP, including 2018.
+print(
+  xtable_table_tp,
+  type = "latex",
+  file = here::here(
+    "3_products",
+    "TP_RMSE_table.tex"
+  ),
+  include.rownames = FALSE
+)
+
+# TP, excluding 2018.
+print(
+  xtable_table_tp_no2018,
+  type = "latex",
+  file = here::here(
+    "3_products",
+    "TP_RMSE_table_no2018.tex"
+  ),
+  include.rownames = FALSE
+)
+
+# TN, including 2018.
+print(
+  xtable_table_tn,
+  type = "latex",
+  file = here::here(
+    "3_products",
+    "TN_RMSE_table.tex"
+  ),
+  include.rownames = FALSE
+)
+
+# TN, excluding 2018.
+print(
+  xtable_table_tn_no2018,
+  type = "latex",
+  file = here::here(
+    "3_products",
+    "TN_RMSE_table_no2018.tex"
+  ),
+  include.rownames = FALSE
+)

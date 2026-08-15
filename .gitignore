@@ -47,3 +47,16 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Large wildfire simulation intermediate files
+/2_incremental/wildfire_simulation_conc.csv
+/2_incremental/wildfire_simulation_conc_N.csv
+/2_incremental/wildfire_simulation_deposition.csv
+/2_incremental/wildfire_simulation_deposition_N.csv
+/2_incremental/wildfire_simulation_discharge.csv
+/2_incremental/wildfire_simulation_discharge_N.csv
+/2_incremental/wildfire_simulation_mass.csv
+/2_incremental/wildfire_simulation_mass_N.csv
+
+/2_incremental/Ft.csv
+

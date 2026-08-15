@@ -24,14 +24,14 @@ SA_m2 <- 27810670.1791
 
 # Best estimate of areal denitrification rate based 
 #DN = 21.3·[NO3–]bottom – 3.88 & [NO3–]bottom in lake mcdonald is 0.1 
-
+# 185 ppb, 0.185 ppm
 # (g-N m-2 yr-1)
 
-dn_best <- 0.05
+dn_best <- 0.1
 
 
 # Lower estimate of areal denitrification rate
-# (g-N m-2 yr-1)
+# (g-N m-2 yr-1); 183 ppb, 0.183 ppm lowest possible value without being zero
 
 dn_lwr <- 0.01
 
@@ -39,7 +39,7 @@ dn_lwr <- 0.01
 # Upper estimate of areal denitrification rate
 # (g-N m-2 yr-1)
 
-dn_upr <- 0.1
+dn_upr <- 1
 
 
 # 4. Calculate weekly denitrification ------------------------------------------
