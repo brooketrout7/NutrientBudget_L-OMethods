@@ -1447,4 +1447,3 @@ ggplot(working_budget, aes(x = end_date)) +
     axis.text.x = element_text(size = 7, angle = 90, hjust = 1)) + theme(legend.position = "none")
 
 
-

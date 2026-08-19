@@ -1977,6 +1977,5 @@ N_conc_plot
 
 both <- P_conc_plot/N_conc_plot
 
-ggsave("Predictions_Fire_Simulations.png", both, "png", width = 10, height = 12)
 
 

@@ -2100,3 +2100,798 @@ print(
   ),
   include.rownames = FALSE
 )
+
+# Annual summaries----------------------------------
+
+nuts <- read.csv(
+  here::here(
+    "3_products",
+    "NutrientBudget.csv"
+  )
+)
+
+
+# Assign water year based on end_date
+water_year <- nuts %>%
+  mutate(
+    end_date = as.Date(end_date),  # Ensure end_date is a Date
+    water_year = year(end_date) + if_else(month(end_date) >= 10, 1, 0)
+  ) %>%
+  filter(water_year <= 2023)%>%
+  mutate(lmc_P = (lag(TP_conc_est)*10^(-9))*(lmc_m3*1000), 
+         lmc_N = (lag(TN_conc_est)*10^(-9))*(lmc_m3*1000), 
+         lmc_P_lwr = (lag(TP_conc_est_lwr)*10^(-9))*(lmc_m3_lwr*1000), 
+         lmc_N_lwr = (lag(TN_conc_est_lwr)*10^(-9))*(lmc_m3_lwr*1000),          
+         lmc_P_upr = (lag(TP_conc_est_upr)*10^(-9))*(lmc_m3_upr*1000), 
+         lmc_N_upr = (lag(TN_conc_est_upr)*10^(-9))*(lmc_m3_upr*1000))
+
+
+# Summarize by water year ------------------------------------------------------
+
+water_year_summary <- water_year %>%
+  group_by(water_year) %>%
+  summarize(
+    across(
+      c(
+        umc_m3, sny_m3, spr_m3, fish_m3,
+        umc_m3_lwr, sny_m3_lwr, spr_m3_lwr, fish_m3_lwr,
+        umc_m3_upr, sny_m3_upr, spr_m3_upr, fish_m3_upr,
+        Lw_m3,
+        Le_m3, Le_m3_lwr, Le_m3_upr,
+        lmc_m3, lmc_m3_lwr, lmc_m3_upr
+      ),
+      ~ sum(.x, na.rm = TRUE)
+    )
+  ) %>%
+  mutate(
+    # Tributaries
+    T_mean = rowSums(
+      across(c(umc_m3, sny_m3, spr_m3, fish_m3)),
+      na.rm = TRUE
+    ),
+    T_lwr = rowSums(
+      across(c(umc_m3_lwr, sny_m3_lwr, spr_m3_lwr, fish_m3_lwr)),
+      na.rm = TRUE
+    ),
+    T_upr = rowSums(
+      across(c(umc_m3_upr, sny_m3_upr, spr_m3_upr, fish_m3_upr)),
+      na.rm = TRUE
+    ),
+    
+    # Outflow as a loss
+    O_mean = -lmc_m3,
+    O_lwr = -lmc_m3_lwr,
+    O_upr = -lmc_m3_upr,
+    
+    # Evaporation as a loss
+    E_mean = -Le_m3,
+    E_lwr = -Le_m3_lwr,
+    E_upr = -Le_m3_upr,
+    
+    # Wet deposition as an input
+    W = Lw_m3
+  ) %>%
+  select(
+    water_year,
+    T_mean, T_lwr, T_upr,
+    O_mean, O_lwr, O_upr,
+    E_mean, E_lwr, E_upr,
+    W
+  )
+
+
+# 1975 values -----------------------------------------------------------------
+
+normalized_flows <- data.frame(
+  Tributary = c("lmc", "umc", "fish", "sny", "spr"),
+  Area_km2 = c(443.9, 283.9, 39.6, 13.8, 10.5),
+  Jan = c(4.47, 2.55, 0.31, 0.071, 0.113),
+  Feb = c(3.51, 2.12, 0.25, 0.071, 0.142),
+  Mar = c(4.16, 2.41, 0.23, 0.065, 0.198),
+  Apr = c(14.16, 7.36, 0.34, 0.283, 0.283),
+  May = c(33.98, 42.48, 3.11, 2.265, 0.623),
+  Jun = c(56.63, 53.80, 1.70, 1.274, 0.311),
+  Jul = c(29.73, 24.07, 0.57, 0.566, 0.031),
+  Aug = c(7.06, 3.96, 0.42, 0.425, 0.031),
+  Sep = c(5.24, 2.55, 0.28, 0.142, 0.028),
+  Oct = c(6.80, 3.68, 0.40, 0.198, 0.023),
+  Nov = c(6.23, 3.68, 0.42, 0.170, 0.057),
+  Dec = c(4.93, 2.69, 0.31, 0.099, 0.142),
+  Mean = c(14.77, 12.65, 0.70, 0.472, 0.165)
+)
+
+days_in_month <- c(
+  Jan = 31, Feb = 28, Mar = 31, Apr = 30,
+  May = 31, Jun = 30, Jul = 31, Aug = 31,
+  Sep = 30, Oct = 31, Nov = 30, Dec = 31
+)
+
+monthly_seconds <- days_in_month * 60 * 60 * 24
+
+
+monthly_flows <- normalized_flows %>%
+  select(
+    Tributary,
+    Jan, Feb, Mar, Apr, May, Jun,
+    Jul, Aug, Sep, Oct, Nov, Dec
+  ) %>%
+  pivot_longer(
+    -Tributary,
+    names_to = "Month",
+    values_to = "CMS"
+  ) %>%
+  mutate(
+    Seconds = monthly_seconds[Month],
+    Volume_m3 = CMS * Seconds
+  )
+
+
+# 1975 tributary volume
+T_total_1975 <- monthly_flows %>%
+  filter(Tributary %in% c("umc", "fish", "sny", "spr")) %>%
+  summarise(Total = sum(Volume_m3)) %>%
+  pull(Total)
+
+
+# 1975 outlet volume
+lmc_total_1975 <- monthly_flows %>%
+  filter(Tributary == "lmc") %>%
+  summarise(Total = sum(Volume_m3)) %>%
+  pull(Total)
+
+
+# Add 1975 row ---------------------------------------------------------------
+
+new_row_water <- data.frame(
+  water_year = 1975,
+  T_mean = T_total_1975,
+  T_lwr = NA,
+  T_upr = NA,
+  O_mean = -lmc_total_1975,
+  O_lwr = NA,
+  O_upr = NA,
+  E_mean = NA,
+  E_lwr = NA,
+  E_upr = NA,
+  W = 20941435
+)
+
+summary_water_year_water <- rbind(
+  water_year_summary,
+  new_row_water
+)
+
+
+# Check values ---------------------------------------------------------------
+
+summary_water_year_water %>%
+  select(water_year, T_mean, O_mean, E_mean, W)
+
+
+# Colors ----------------------------------------------------------------------
+
+fill_colors_water <- c(
+  "Wet Deposition" = "black",
+  "Evaporation" = "peachpuff3",
+  "Outflow" = "midnightblue",
+  "Tributaries" = "lightskyblue2"
+)
+
+border_colors_water <- c(
+  "Wet Deposition" = "black",
+  "Evaporation" = "peachpuff3",
+  "Outflow" = "midnightblue",
+  "Tributaries" = "lightskyblue2"
+)
+
+
+# Convert to long format ------------------------------------------------------
+
+errorbar_data_water <- summary_water_year_water %>%
+  transmute(
+    water_year = as.factor(water_year),
+    Category = "Tributaries",
+    Mean = T_mean,
+    Min = T_lwr,
+    Max = T_upr
+  ) %>%
+  bind_rows(
+    
+    summary_water_year_water %>%
+      transmute(
+        water_year = as.factor(water_year),
+        Category = "Outflow",
+        Mean = O_mean,
+        Min = O_lwr,
+        Max = O_upr
+      ),
+    
+    summary_water_year_water %>%
+      transmute(
+        water_year = as.factor(water_year),
+        Category = "Evaporation",
+        Mean = E_mean,
+        Min = E_lwr,
+        Max = E_upr
+      ),
+    
+    summary_water_year_water %>%
+      transmute(
+        water_year = as.factor(water_year),
+        Category = "Wet Deposition",
+        Mean = W,
+        Min = NA_real_,
+        Max = NA_real_
+      )
+  )
+
+
+# Check categories ------------------------------------------------------------
+
+unique(errorbar_data_water$Category)
+
+
+# Plot ------------------------------------------------------------------------
+
+ggplot(
+  errorbar_data_water,
+  aes(
+    x = water_year,
+    y = Mean,
+    fill = Category,
+    color = Category
+  )
+) +
+  geom_bar(
+    stat = "identity",
+    position = "dodge",
+    width = 0.75
+  ) +
+  geom_errorbar(
+    aes(
+      ymin = Min,
+      ymax = Max
+    ),
+    position = position_dodge(width = 0.75),
+    width = 0.25,
+    na.rm = TRUE,
+    color = "grey20"
+  ) +
+  scale_fill_manual(
+    values = fill_colors_water
+  ) +
+  scale_color_manual(
+    values = border_colors_water
+  ) +
+  guides(
+    fill = guide_legend(
+      title = NULL,
+      nrow = 1
+    ),
+    color = guide_legend(
+      title = NULL,
+      nrow = 1
+    )
+  ) +
+  labs(
+    title = "C",
+    x = "Water Year",
+    y = bquote("Flux (" * m^3 ~ yr^-1 * ")")
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 12),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 12),
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 12),
+    legend.position = "bottom"
+  )  +
+  scale_y_continuous(
+    trans = scales::pseudo_log_trans(base = 10),
+    labels = scales::comma,
+    breaks = c(
+      -1e9,
+      -1e8,
+      -1e7,
+      -1e6,
+      0,
+      1e6,
+      1e7,
+      1e8,
+      1e9
+    )
+  )
+
+
+
+# Summarize by water year for P -----------------------------------------------
+
+summary_water_year_P <- water_year %>%
+  group_by(water_year) %>%
+  summarize(
+    across(
+      c(
+        umc_P_lwr, sny_P_lwr, spr_P_lwr, fish_P_lwr,
+        umc_P, sny_P, spr_P, fish_P,
+        umc_P_upr, sny_P_upr, spr_P_upr, fish_P_upr,
+        TP_dry_kg, TP_wet_kg,
+        H_P_lwr, H_P, H_P_upr,
+        S_P_lwr, S_P, S_P_upr,
+        lmc_P_lwr, lmc_P, lmc_P_upr
+      ),
+      ~ sum(.x, na.rm = TRUE)
+    )
+  ) %>%
+  mutate(
+    # Tributaries
+    T_mean = rowSums(
+      across(c(umc_P, sny_P, spr_P, fish_P)),
+      na.rm = TRUE
+    ),
+    T_lwr = rowSums(
+      across(c(umc_P_lwr, sny_P_lwr, spr_P_lwr, fish_P_lwr)),
+      na.rm = TRUE
+    ),
+    T_upr = rowSums(
+      across(c(umc_P_upr, sny_P_upr, spr_P_upr, fish_P_upr)),
+      na.rm = TRUE
+    ),
+    
+    # Septic
+    H_lwr = H_P_lwr,
+    H = H_P,
+    H_upr = H_P_upr,
+    
+    # Total atmospheric deposition
+    D = TP_dry_kg + TP_wet_kg,
+    
+    # Burial as a loss
+    S_lwr = -S_P_lwr,
+    S = -S_P,
+    S_upr = -S_P_upr,
+    
+    # Outflow as a loss
+    O_mean = -lmc_P,
+    O_lwr = -lmc_P_lwr,
+    O_upr = -lmc_P_upr
+  ) %>%
+  select(
+    water_year,
+    T_mean, T_lwr, T_upr,
+    O_mean, O_lwr, O_upr,
+    H_lwr, H, H_upr,
+    S_lwr, S, S_upr,
+    D
+  )
+
+
+# Add 1975 values -------------------------------------------------------------
+
+new_row_P <- data.frame(
+  water_year = 1975,
+  T_mean = 8265,
+  T_lwr = NA,
+  T_upr = NA,
+  O_mean = -5035,
+  O_lwr = NA,
+  O_upr = NA,
+  H_lwr = NA,
+  H = 70,
+  H_upr = NA,
+  S_lwr = NA,
+  S = NA,
+  S_upr = NA,
+  D = 570
+)
+
+summary_water_year_P <- rbind(
+  summary_water_year_P,
+  new_row_P
+)
+
+
+# Check deposition values -----------------------------------------------------
+
+summary_water_year_P %>%
+  select(water_year, D)
+
+
+# Colors ----------------------------------------------------------------------
+
+fill_colors_P <- c(
+  "Deposition" = "black",
+  "Septic" = "peachpuff3",
+  "Burial" = "grey",
+  "Outflow" = "midnightblue",
+  "Tributaries" = "lightskyblue2"
+)
+
+border_colors_P <- c(
+  "Deposition" = "black",
+  "Septic" = "peachpuff3",
+  "Burial" = "grey",
+  "Outflow" = "midnightblue",
+  "Tributaries" = "lightskyblue2"
+)
+
+
+# Convert to long format for plotting ----------------------------------------
+
+errorbar_data_P <- summary_water_year_P %>%
+  transmute(
+    water_year = as.factor(water_year),
+    Category = "Tributaries",
+    Mean = T_mean,
+    Min = T_lwr,
+    Max = T_upr
+  ) %>%
+  bind_rows(
+    
+    summary_water_year_P %>%
+      transmute(
+        water_year = as.factor(water_year),
+        Category = "Outflow",
+        Mean = O_mean,
+        Min = O_lwr,
+        Max = O_upr
+      ),
+    
+    summary_water_year_P %>%
+      transmute(
+        water_year = as.factor(water_year),
+        Category = "Septic",
+        Mean = H,
+        Min = H_lwr,
+        Max = H_upr
+      ),
+    
+    summary_water_year_P %>%
+      transmute(
+        water_year = as.factor(water_year),
+        Category = "Burial",
+        Mean = S,
+        Min = S_lwr,
+        Max = S_upr
+      ),
+    
+    summary_water_year_P %>%
+      transmute(
+        water_year = as.factor(water_year),
+        Category = "Deposition",
+        Mean = D,
+        Min = NA_real_,
+        Max = NA_real_
+      )
+  )
+
+
+# Check categories ------------------------------------------------------------
+
+unique(errorbar_data_P$Category)
+
+
+# Plot ------------------------------------------------------------------------
+
+ggplot(
+  errorbar_data_P,
+  aes(
+    x = water_year,
+    y = Mean,
+    fill = Category,
+    color = Category
+  )
+) +
+  geom_bar(
+    stat = "identity",
+    position = "dodge",
+    width = 0.75
+  ) +
+  geom_errorbar(
+    aes(
+      ymin = Min,
+      ymax = Max
+    ),
+    position = position_dodge(width = 0.75),
+    width = 0.25,
+    na.rm = TRUE,
+    color = "grey20"
+  ) +
+  scale_fill_manual(
+    values = fill_colors_P
+  ) +
+  scale_color_manual(
+    values = border_colors_P
+  ) +
+  guides(
+    fill = guide_legend(
+      title = NULL,
+      nrow = 1
+    ),
+    color = guide_legend(
+      title = NULL,
+      nrow = 1
+    )
+  ) +
+  labs(
+    title = "A",
+    x = "",
+    y = bquote("Flux (" * kg-P ~ yr^-1 * ")")
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 12),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 12),
+    axis.text.x = element_blank(),
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 12),
+    legend.position = "none"
+  )  +
+  scale_y_continuous(
+    trans = scales::pseudo_log_trans(base = 10),
+    labels = scales::comma,
+    breaks = c(
+      -10000,
+      -1000,
+      -100,
+      0,
+      100,
+      1000,
+      10000
+    )
+  )
+
+
+# Summarize by water year for N -----------------------------------------------
+
+summary_water_year_N <- water_year %>%
+  group_by(water_year) %>%
+  summarize(
+    across(
+      c(
+        umc_N_lwr, sny_N_lwr, spr_N_lwr, fish_N_lwr,
+        umc_N, sny_N, spr_N, fish_N,
+        umc_N_upr, sny_N_upr, spr_N_upr, fish_N_upr,
+        TN_wet_kg, TN_dry_kg,
+        H_N_lwr, H_N, H_N_upr,
+        S_N_lwr, S_N, S_N_upr,
+        DN_N_lwr, DN_N, DN_N_upr,
+        lmc_N_lwr, lmc_N, lmc_N_upr
+      ),
+      ~ sum(.x, na.rm = TRUE)
+    )
+  ) %>%
+  mutate(
+    # Tributaries
+    T_mean = rowSums(
+      across(c(umc_N, sny_N, spr_N, fish_N)),
+      na.rm = TRUE
+    ),
+    T_lwr = rowSums(
+      across(c(umc_N_lwr, sny_N_lwr, spr_N_lwr, fish_N_lwr)),
+      na.rm = TRUE
+    ),
+    T_upr = rowSums(
+      across(c(umc_N_upr, sny_N_upr, spr_N_upr, fish_N_upr)),
+      na.rm = TRUE
+    ),
+    
+    # Septic
+    H_lwr = H_N_lwr,
+    H = H_N,
+    H_upr = H_N_upr,
+    
+    # Total atmospheric deposition
+    D = TN_dry_kg + TN_wet_kg,
+    
+    # Burial as a loss
+    S_lwr = -S_N_lwr,
+    S = -S_N,
+    S_upr = -S_N_upr,
+    
+    # Denitrification as a loss
+    DN_lwr = -DN_N_lwr,
+    DN = -DN_N,
+    DN_upr = -DN_N_upr,
+    
+    # Outflow as a loss
+    O_mean = -lmc_N,
+    O_lwr = -lmc_N_lwr,
+    O_upr = -lmc_N_upr
+  ) %>%
+  select(
+    water_year,
+    T_mean, T_lwr, T_upr,
+    O_mean, O_lwr, O_upr,
+    H_lwr, H, H_upr,
+    S_lwr, S, S_upr,
+    DN_lwr, DN, DN_upr,
+    D
+  )
+
+
+# Add 1975 values -------------------------------------------------------------
+
+new_row_N <- data.frame(
+  water_year = 1975,
+  T_mean = 381285,
+  T_lwr = NA,
+  T_upr = NA,
+  O_mean = -364395,
+  O_lwr = NA,
+  O_upr = NA,
+  H_lwr = NA,
+  H = 2635,
+  H_upr = NA,
+  S_lwr = NA,
+  S = NA,
+  S_upr = NA,
+  DN_lwr = NA,
+  DN = NA,
+  DN_upr = NA,
+  D = 35225
+)
+
+summary_water_year_N <- rbind(
+  summary_water_year_N,
+  new_row_N
+)
+
+
+# Check values ----------------------------------------------------------------
+
+summary_water_year_N %>%
+  select(water_year, D, DN_lwr, DN, DN_upr)
+
+
+# Colors ----------------------------------------------------------------------
+
+fill_colors_N <- c(
+  "Deposition" = "black",
+  "Septic" = "peachpuff3",
+  "Burial" = "grey",
+  "Denitrification" = "darkred",
+  "Outflow" = "midnightblue",
+  "Tributaries" = "lightskyblue2"
+)
+
+border_colors_N <- fill_colors_N
+
+
+# Convert to long format for plotting ----------------------------------------
+
+errorbar_data_N <- summary_water_year_N %>%
+  transmute(
+    water_year = as.factor(water_year),
+    Category = "Tributaries",
+    Mean = T_mean,
+    Min = T_lwr,
+    Max = T_upr
+  ) %>%
+  bind_rows(
+    
+    summary_water_year_N %>%
+      transmute(
+        water_year = as.factor(water_year),
+        Category = "Outflow",
+        Mean = O_mean,
+        Min = O_lwr,
+        Max = O_upr
+      ),
+    
+    summary_water_year_N %>%
+      transmute(
+        water_year = as.factor(water_year),
+        Category = "Septic",
+        Mean = H,
+        Min = H_lwr,
+        Max = H_upr
+      ),
+    
+    summary_water_year_N %>%
+      transmute(
+        water_year = as.factor(water_year),
+        Category = "Burial",
+        Mean = S,
+        Min = S_lwr,
+        Max = S_upr
+      ),
+    
+    summary_water_year_N %>%
+      transmute(
+        water_year = as.factor(water_year),
+        Category = "Denitrification",
+        Mean = DN,
+        Min = DN_lwr,
+        Max = DN_upr
+      ),
+    
+    summary_water_year_N %>%
+      transmute(
+        water_year = as.factor(water_year),
+        Category = "Deposition",
+        Mean = D,
+        Min = NA_real_,
+        Max = NA_real_
+      )
+  )
+
+
+# Plot ------------------------------------------------------------------------
+
+ggplot(
+  errorbar_data_N,
+  aes(
+    x = water_year,
+    y = Mean,
+    fill = Category,
+    color = Category
+  )
+) +
+  geom_bar(
+    stat = "identity",
+    position = "dodge",
+    width = 0.75
+  ) +
+  geom_errorbar(
+    aes(
+      ymin = Min,
+      ymax = Max
+    ),
+    position = position_dodge(width = 0.75),
+    width = 0.25,
+    na.rm = TRUE,
+    color = "grey20"
+  ) +
+  scale_fill_manual(
+    values = fill_colors_N
+  ) +
+  scale_color_manual(
+    values = border_colors_N
+  ) +
+  guides(
+    fill = guide_legend(
+      title = NULL,
+      nrow = 1
+    ),
+    color = guide_legend(
+      title = NULL,
+      nrow = 1
+    )
+  ) +
+  labs(
+    title = "B",
+    x = "",
+    y = bquote("Flux (" * kg-N ~ yr^-1 * ")")
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 12),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 12),
+    axis.text.x = element_blank(),
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 12),
+    legend.position = "bottom"
+  ) +
+  scale_y_continuous(
+    trans = scales::pseudo_log_trans(base = 10),
+    labels = scales::comma,
+    breaks = c(
+      -500000,
+      -100000,
+      -10000,
+      -1000,
+      -100,
+      0,
+      1000,
+      10000,
+      100000,
+      500000
+    )
+  )
+
+
+
+
