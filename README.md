@@ -1,4 +1,4 @@
-# NutrientBudget_LOMethods
+# NutrientBudget_L-OMethods
 
 Data and code for a weekly water, nitrogen, and phosphorus budget model for Lake McDonald, Glacier National Park, Montana, USA.
 
@@ -7,7 +7,7 @@ This repository contains the data and R code used to construct the water and nut
 ## Repository structure
 
 ```text
-NutrientBudget_LOMethods/
+NutrientBudget_L-OMethods/
 │
 ├── 0_data/
 │   └── Raw data used in the analyses
