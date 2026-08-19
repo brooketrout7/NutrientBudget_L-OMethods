@@ -1,5 +1,8 @@
 # NutrientBudget_L-OMethods
 
+[![DOI](https://zenodo.org/badge/1330126821.svg)](https://doi.org/10.5281/zenodo.22018652)
+
+
 Data and code for a weekly water, nitrogen, and phosphorus budget model for Lake McDonald, Glacier National Park, Montana, USA.
 
 This repository contains the data and R code used to construct the water and nutrient budgets and simulate the effects of wildfire-related nutrient loading.
