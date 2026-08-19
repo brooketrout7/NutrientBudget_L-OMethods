@@ -4,17 +4,17 @@ message: "If you use this software or data, please cite it using the metadata be
 title: "Revisiting lake nutrient budgets to predict in-lake nutrient concentrations for research, monitoring, and management"
 
 authors:
-  - family-names: "Bain-White"
+  - Last name: "Bain-White"
     given-names: "Brooke G."
 
-  - family-names: "Ballantyne"
+  - Last name: "Ballantyne"
     given-names: "Ashley P."
 
-  - family-names: "Hall"
+  - Last name: "Hall"
     given-names: "Robert O."
     name-suffix: "Jr."
 
-  - family-names: "Elser"
+  - Last name: "Elser"
     given-names: "James J."
 
 type: software
