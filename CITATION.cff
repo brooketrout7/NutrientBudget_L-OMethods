@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software or data, please cite it using the metadata below."
+
+title: "Revisiting lake nutrient budgets to predict in-lake nutrient concentrations for research, monitoring, and management"
+
+authors:
+  - family-names: "Bain-White"
+    given-names: "Brooke G."
+
+  - family-names: "Ballantyne"
+    given-names: "Ashley P."
+
+  - family-names: "Hall"
+    given-names: "Robert O."
+    name-suffix: "Jr."
+
+  - family-names: "Elser"
+    given-names: "James J."
+
+type: software
+
+repository-code: "https://github.com/brooketrout7/NutrientBudget_L-OMethods"
+
+license: MIT
