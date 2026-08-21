@@ -2272,16 +2272,16 @@ summary_water_year_water %>%
 
 fill_colors_water <- c(
   "Wet Deposition" = "black",
-  "Evaporation" = "peachpuff3",
+  "Evaporation" = "peachpuff1",
   "Outflow" = "midnightblue",
-  "Tributaries" = "lightskyblue2"
+  "Tributaries" = "cadetblue"
 )
 
 border_colors_water <- c(
   "Wet Deposition" = "black",
-  "Evaporation" = "peachpuff3",
+  "Evaporation" = "peachpuff1",
   "Outflow" = "midnightblue",
-  "Tributaries" = "lightskyblue2"
+  "Tributaries" = "cadetblue"
 )
 
 
@@ -2333,7 +2333,7 @@ unique(errorbar_data_water$Category)
 
 # Plot ------------------------------------------------------------------------
 
-ggplot(
+water <- ggplot(
   errorbar_data_water,
   aes(
     x = water_year,
@@ -2501,18 +2501,18 @@ summary_water_year_P %>%
 
 fill_colors_P <- c(
   "Deposition" = "black",
-  "Septic" = "peachpuff3",
+  "Septic" = "peachpuff1",
   "Burial" = "grey",
   "Outflow" = "midnightblue",
-  "Tributaries" = "lightskyblue2"
+  "Tributaries" = "cadetblue"
 )
 
 border_colors_P <- c(
   "Deposition" = "black",
-  "Septic" = "peachpuff3",
+  "Septic" = "peachpuff1",
   "Burial" = "grey",
   "Outflow" = "midnightblue",
-  "Tributaries" = "lightskyblue2"
+  "Tributaries" = "cadetblue"
 )
 
 
@@ -2573,7 +2573,7 @@ unique(errorbar_data_P$Category)
 
 # Plot ------------------------------------------------------------------------
 
-ggplot(
+P<- ggplot(
   errorbar_data_P,
   aes(
     x = water_year,
@@ -2749,11 +2749,11 @@ summary_water_year_N %>%
 
 fill_colors_N <- c(
   "Deposition" = "black",
-  "Septic" = "peachpuff3",
+  "Septic" = "peachpuff1",
   "Burial" = "grey",
-  "Denitrification" = "darkred",
+  "Denitrification" = "#cbc9e2",
   "Outflow" = "midnightblue",
-  "Tributaries" = "lightskyblue2"
+  "Tributaries" = "cadetblue"
 )
 
 border_colors_N <- fill_colors_N
@@ -2820,7 +2820,7 @@ errorbar_data_N <- summary_water_year_N %>%
 
 # Plot ------------------------------------------------------------------------
 
-ggplot(
+N <- ggplot(
   errorbar_data_N,
   aes(
     x = water_year,
@@ -2894,4 +2894,13 @@ ggplot(
 
 
 
+all <- P/N/water
 
+ggsave(
+  filename = "all.png",
+  plot = all,
+  width = 10,
+  height = 12,
+  units = "in",
+  dpi = 300
+)
