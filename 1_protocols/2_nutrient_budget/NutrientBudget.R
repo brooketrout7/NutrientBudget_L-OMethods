@@ -2751,7 +2751,7 @@ fill_colors_N <- c(
   "Deposition" = "black",
   "Septic" = "peachpuff1",
   "Burial" = "grey",
-  "Denitrification" = "#cbc9e2",
+  "Denitrification" = "#cbc9e7",
   "Outflow" = "midnightblue",
   "Tributaries" = "cadetblue"
 )
@@ -2897,10 +2897,11 @@ N <- ggplot(
 all <- P/N/water
 
 ggsave(
-  filename = "all.png",
+  filename = "all.jpg",
   plot = all,
   width = 10,
   height = 12,
   units = "in",
   dpi = 300
 )
+
